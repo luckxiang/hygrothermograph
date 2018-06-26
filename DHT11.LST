@@ -1,0 +1,138 @@
+C51 COMPILER V9.01   DHT11                                                                 03/18/2018 20:40:03 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE DHT11
+OBJECT MODULE PLACED IN DHT11.OBJ
+COMPILER INVOKED BY: C:\Program Files (x86)\Keil\C51\BIN\C51.EXE DHT11.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include "DHT11.h"
+   2          
+   3          //定义变量
+   4          unsigned char HUMI_Buffer_Int = 0;
+   5          unsigned char TEM_Buffer_Int = 0;
+   6           
+   7          
+   8          //****************************************************
+   9          //MS延时函数(12M晶振下测试)
+  10          //****************************************************
+  11          static void Delay1ms()          //@11.0592MHz
+  12          {
+  13   1              unsigned char i, j;
+  14   1      
+  15   1              _nop_();
+  16   1              i = 11;
+  17   1              j = 190;
+  18   1              do
+  19   1              {
+  20   2                      while (--j);
+  21   2              } while (--i);
+  22   1      }
+  23          
+  24          void DHT11_delay_ms(unsigned int n)
+  25          {
+  26   1              unsigned int  i;
+  27   1              for(i=0;i<n;i++)
+  28   1              {
+  29   2                 Delay1ms();   
+  30   2              }
+  31   1      }
+  32          //****************************************************
+  33          //延时函数
+  34          //****************************************************
+  35          static void Delay10us()         //@11.0592MHz
+  36          {
+  37   1              unsigned char i;
+  38   1      
+  39   1              _nop_();
+  40   1              _nop_();
+  41   1              _nop_();
+  42   1              i = 24;
+  43   1              while (--i);
+  44   1      }
+  45          void DHT11_Delay( unsigned int n )
+  46          {
+  47   1              unsigned int i;
+  48   1              for(i = 0 ; i < n ; i++ )
+  49   1                Delay10us();
+  50   1      }
+  51          
+  52          //****************************************************
+  53          //初始化DHT11
+  54          //****************************************************
+  55          bit DHT11_Init()
+C51 COMPILER V9.01   DHT11                                                                 03/18/2018 20:40:03 PAGE 2   
+
+  56          {
+  57   1              bit Flag_DHT11 = 1;
+  58   1              DHT11_DQ = 0;
+  59   1              DHT11_delay_ms(25);                     //延时>18ms
+  60   1      
+  61   1              DHT11_DQ = 1;
+  62   1              DHT11_Delay(3);                         //延时20~40us
+  63   1                                      
+  64   1              Flag_DHT11 = DHT11_DQ;          
+  65   1              DHT11_Delay(3);                         //DHT11响应总时间80us
+  66   1      
+  67   1              DHT11_Delay(4);                         //DHT11拉高信号80us
+  68   1      
+  69   1              return Flag_DHT11;              
+  70   1      }
+  71          
+  72          //****************************************************
+  73          //读一个字节DHT11数据
+  74          //****************************************************
+  75          unsigned char DHT11_Read_Byte()
+  76          {
+  77   1              unsigned char i,dat,j;
+  78   1              while( DHT11_DQ == 1 );
+  79   1              for( i = 0 ; i < 8 ; i++ )
+  80   1              {
+  81   2                      while( DHT11_DQ == 0 ); 
+  82   2                      dat <<= 1;
+  83   2                      for( j = 0 ; DHT11_DQ == 1 ; j++);
+  84   2                      if( j < 30 )
+  85   2                              dat &= 0xfe;            //低位清零
+  86   2                      else
+  87   2                              dat |= 0x01;            //低位置一
+  88   2              }
+  89   1              return dat;
+  90   1      }
+  91          
+  92          //****************************************************
+  93          //读取温湿度值，存放在TEM_Buffer和HUMI_Buffer
+  94          //****************************************************
+  95          void DHT11_Read()
+  96          {
+  97   1              if( DHT11_Init() == 0 )
+  98   1              {
+  99   2                      HUMI_Buffer_Int = DHT11_Read_Byte();            //读取湿度的整数值
+ 100   2                      DHT11_Read_Byte();                                                      //读取湿度的小数值
+ 101   2                      TEM_Buffer_Int = DHT11_Read_Byte();                     //读取温度的整数值
+ 102   2                      DHT11_Read_Byte();              //读取温度的小数值
+ 103   2                      DHT11_Read_Byte();                                                      //读取校验和
+ 104   2                      DHT11_Delay(5);                                 //DHT11拉低总线50us
+ 105   2      
+ 106   2                      DHT11_DQ = 1;                                   //释放总线                      
+ 107   2              }       
+ 108   1      }
+ 109          
+ 110          
+ 111          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    178    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+C51 COMPILER V9.01   DHT11                                                                 03/18/2018 20:40:03 PAGE 3   
+
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      2    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----       1
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
